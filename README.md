@@ -7,7 +7,7 @@ You can create database model class with ease and you can use some methods.
 1. Add library with id: "1urlrIRVTLZrQL3iFOPmrxBANfgw6478VDTrsnsOChUOQF0a3yw8HK5wr".
 2. Create a sheet for a database with name: "Your Sheet Name".
 3. Create a Class following example codes.
-````
+````js
 const Model = DatabaseModel.DatabaseModel();
 
 class YourClassName extends Model {
