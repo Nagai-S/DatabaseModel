@@ -80,6 +80,16 @@ class Model {
     sheet.getRange(rowNum, 1, 1, data.length).setValues(setData);
   }
 
+  static destroy() {
+    const { sheet } = this.sheetInfo();
+    const rowIndex = this.all().findIndex((e) => e.id === obj.id);
+    if (rowIndex === -1) {
+      throw "This item doesn't exist in db";
+    } else {
+      sheet.deleteRow(rowIndex + 2);
+    }
+  }
+
   static objToArray({ obj, lastColumn }) {
     let data = Array(lastColumn);
     const column = this.column();
@@ -106,6 +116,16 @@ class Model {
       return [];
     } else {
       let data = sheet.getRange(2, 1, 1, lastColumn).getValues()[0];
+      return this.arrayToObj(data);
+    }
+  }
+
+  static second() {
+    const { lastColumn, lastRow, sheet } = this.sheetInfo();
+    if (lastRow === 1) {
+      return [];
+    } else {
+      let data = sheet.getRange(3, 1, 1, lastColumn).getValues()[0];
       return this.arrayToObj(data);
     }
   }
