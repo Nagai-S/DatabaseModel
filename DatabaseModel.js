@@ -35,13 +35,7 @@ class Model {
     }
     const datas = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
     return datas.map((data) => {
-      let params = {};
-      const column = this.column();
-      for (let key of Object.keys(column)) {
-        let index = column[key];
-        params[key] = data[index];
-      }
-      return new this(params);
+      return this.arrayToObj(data);
     });
   }
 
@@ -96,20 +90,34 @@ class Model {
     return data;
   }
 
-  static first() {
-    let allData = this.all();
-    if (allData.length === 0) {
-      return {};
+  static arrayToObj(array) {
+    let params = {};
+    const column = this.column();
+    for (let key of Object.keys(column)) {
+      let index = column[key];
+      params[key] = array[index];
     }
-    return allData[0];
+    return new this(params);
+  }
+
+  static first() {
+    const { lastColumn, lastRow, sheet } = this.sheetInfo();
+    if (lastRow === 1) {
+      return [];
+    } else {
+      let data = sheet.getRange(2, 1, 1, lastColumn).getValues()[0];
+      return this.arrayToObj(data);
+    }
   }
 
   static last() {
-    let allData = this.all();
-    if (allData.length === 0) {
-      return {};
+    const { lastColumn, lastRow, sheet } = this.sheetInfo();
+    if (lastRow === 1) {
+      return [];
+    } else {
+      let data = sheet.getRange(lastRow, 1, 1, lastColumn).getValues()[0];
+      return this.arrayToObj(data);
     }
-    return allData[allData.length - 1];
   }
 
   static findAll(params) {
