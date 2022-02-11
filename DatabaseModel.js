@@ -113,7 +113,7 @@ class Model {
   static first() {
     const { lastColumn, lastRow, sheet } = this.sheetInfo();
     if (lastRow === 1) {
-      return [];
+      return {};
     } else {
       let data = sheet.getRange(2, 1, 1, lastColumn).getValues()[0];
       return this.arrayToObj(data);
@@ -122,8 +122,8 @@ class Model {
 
   static second() {
     const { lastColumn, lastRow, sheet } = this.sheetInfo();
-    if (lastRow === 1) {
-      return [];
+    if (lastRow < 3) {
+      return {};
     } else {
       let data = sheet.getRange(3, 1, 1, lastColumn).getValues()[0];
       return this.arrayToObj(data);
@@ -133,7 +133,7 @@ class Model {
   static last() {
     const { lastColumn, lastRow, sheet } = this.sheetInfo();
     if (lastRow === 1) {
-      return [];
+      return {};
     } else {
       let data = sheet.getRange(lastRow, 1, 1, lastColumn).getValues()[0];
       return this.arrayToObj(data);
