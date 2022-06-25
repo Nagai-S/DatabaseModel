@@ -42,7 +42,7 @@ class YourClassName extends Model {
 |data|data|data|
 |data|data|data|
 
-* You can set an integer(>=0) in 'column_number'. When you want to save datas associated a 'key1' in column A, set 0 in property of 'key1' in static method 'column()', when column B, set 1, and when column C, set 2, ... and so on.
+* You can set an integer(>=0) in 'column_number'. When you want to save datas associated with a 'key1' in column A, set 0 at the value of 'key1' in static method 'column()', when column B, set 1, and when column C, set 2, ... and so on.
 * You can set a string of a key name that is identifier of the datas in 'your_primary_key'.
 
 ## Methods
@@ -60,7 +60,7 @@ foo.key3 = 'ccc';
 
 ### `Class.create(obj)`
 ````js
-let foo = new YourClassName({key1: 'aaa', key2: 'bbb'});
+let foo = new YourClassName({key1: 'aaa', key2: 'bbb', key3: 'ccc'});
 YourClassName.create(foo);
 ````
 You can save a data 'foo' in a new row of the database sheet 'Your Sheet Name' and the sheet is like the following.
