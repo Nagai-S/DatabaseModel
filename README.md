@@ -17,6 +17,10 @@ class YourClassName extends Model {
   constructor(params) {
     super(params, 'your_primary_key');
   }
+  
+  static primaryKey() {
+    'yourPrimaryKey'
+  }
 
   static column() {
     return{
@@ -43,7 +47,7 @@ class YourClassName extends Model {
 |data|data|data|
 
 * You can set an integer(>=0) in 'column_number'. When you want to save datas associated with a 'key1' in column A, set 0 at the value of 'key1' in static method 'column()', when column B, set 1, and when column C, set 2, ... and so on.
-* You can set a string of a key name that is identifier of the datas in 'your_primary_key'.
+* You can set a string of a key name that is identifier of the datas in 'yourPrimaryKey'.
 
 ## Methods
 ### Initialize
@@ -58,10 +62,10 @@ foo.key3 = 'ccc';
 // You can set 'ccc' in the property of 'key3' of the instance 'foo';
 ````
 
-### `Class.create(obj)`
+### `object.create()`
 ````js
 let foo = new YourClassName({key1: 'aaa', key2: 'bbb', key3: 'ccc'});
-YourClassName.create(foo);
+foo.create();
 ````
 You can save a data 'foo' in a new row of the database sheet 'Your Sheet Name' and the sheet is like the following.
 |A|B|C|
@@ -105,11 +109,11 @@ Return an first data that matches argument 'params' at the type of 'YourClassNam
 
 Argument can have some keys and properties, and the method returns an first data that matches all keys and properties.
 
-### `Class.update(obj)`
+### `object.update(obj)`
 ````js
 const foo = YourClassName.find({key1: 'aaa', key2: 'bbb'});
 foo.key3 = 2000;
-YourClassName.update(foo)
+foo.update()
 ````
 You can update the data 'foo' in the database sheet 'Your Sheet Name' and the sheet is like the following.
 |A|B|C|
