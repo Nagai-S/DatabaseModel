@@ -15,18 +15,17 @@ const Model = DatabaseModel.DatabaseModel();
 
 class YourClassName extends Model {
   constructor(params) {
-    super(params, 'your_primary_key');
+    super(params);
   }
   
   static primaryKey() {
-    'yourPrimaryKey'
+    return 'id'
   }
 
+  // optional  
   static column() {
     return{
-      key1: 0,
-      key2: 1,
-      key3: 2,
+      id: 0,          
     }
   }
 
@@ -46,15 +45,15 @@ class YourClassName extends Model {
 |data|data|data|
 |data|data|data|
 
-* You can set an integer(>=0) in 'column_number'. When you want to save datas associated with a 'key1' in column A, set 0 at the value of 'key1' in static method 'column()', when column B, set 1, and when column C, set 2, ... and so on.
-* You can set a string of a key name that is identifier of the datas in 'yourPrimaryKey'.
+* You can set an integer(>=0) as the value of a property in `static column()` if you want to use different property name from the column name of database. When you want to change the property name associated with column A, you can set `{newPropertyName: 0}`, when column B, `{newPropertyName: 1}`, when column C, `{newPropertyName: 2}` ...
+* You can set a string of a property name that is identifier of the datas in `static primaryKey()`.
 
 ## Methods
 ### Initialize
 ````js
-let foo = new YourClassName({key1: 'aaa', key2: 'bbb'}); 
+let foo = new YourClassName({id: 'aaa', key2: 'bbb'}); 
 // You can create an instance of 'YourClassName'
-let val1 = foo.key1; 
+let val1 = foo.id; 
 // You can set 'aaa' in 'val1'
 let val2 = foo.key2; 
 // You can set 'bbb' in 'val2'
@@ -64,7 +63,7 @@ foo.key3 = 'ccc';
 
 ### `object.create()`
 ````js
-let foo = new YourClassName({key1: 'aaa', key2: 'bbb', key3: 'ccc'});
+let foo = new YourClassName({id: 'aaa', key2: 'bbb', key3: 'ccc'});
 foo.create();
 ````
 You can save a data 'foo' in a new row of the database sheet 'Your Sheet Name' and the sheet is like the following.
@@ -75,43 +74,56 @@ You can save a data 'foo' in a new row of the database sheet 'Your Sheet Name' a
 
 ### `Class.create_all(objArray)`
 ````js
-const foo2 = new YourClassName({key1: 'aaa', key3: 'eee'});
-const bar = new YourClassName({key1: 'abab', key2: 1000});
+const foo2 = new YourClassName({id: 'bbb', key3: 'ccc'});
+const bar = new YourClassName({id: 'ccc', key2: 1000});
 YourClassName.create_all([foo2, bar]);
 ````
-You can save all datas 'foo2' and 'bar' in a new row of the database sheet 'Your Sheet Name' and the sheet is like the following.
+You can save all datas 'foo2' and 'bar' in new rows of the database sheet 'Your Sheet Name' and the sheet is like the following.
 |A|B|C|
 |---|---|---|
 |key1|key2|key3|
 |aaa|bbb|ccc|
-|aaa||eee|
-|abab|1000||
+|bbb||ccc|
+|ccc|1000||
 
 ### `Class.all()`
 ````js
 const datas = YourClassName.all(); 
+// return
+// [
+//   {id: 'aaa', key2: 'bbb', key3: 'ccc'},
+//   {id: 'bbb', key2: '', key3: 'ccc'},
+//   {id: 'ccc', key2: 1000, key3: ''},
+// ]
 ````
-Return an array of all datas at the type of 'YourClassName' (ex. [foo, foo2, bar])
+Return an array of the object of 'YourClassName' of all datas saved in database sheet.
 
 ### `Class.findAll(params)`
 ````js
-const datas = YourClassName.findAll({key1: 'aaa'}); 
+const datas = YourClassName.findAll({key3: 'ccc'});
+// return
+// [
+//   {id: 'aaa', key2: 'bbb', key3: 'ccc'},
+//   {id: 'bbb', key2: '', key3: 'ccc'},
+// ]
 ````
-Return an array of datas that match argument 'params' at the type of 'YourClassName' (ex. [foo, foo2])
+Return an array of the object of 'YourClassName' of all datas that match argument 'params'.
 
-Argument can have some keys and properties, and the method returns all of datas that match all keys and properties.
+Argument can have some keys and properties, and the method returns all datas that match all keys and properties (AND SEARCH).
 
 ### `Class.find(params)`
 ````js
-const datas = YourClassName.findAll({key1: 'aaa'}); 
+const datas = YourClassName.find({id: 'aaa'}); 
+// return
+// {id: 'aaa', key2: 'bbb', key3: 'ccc'}
 ````
-Return an first data that matches argument 'params' at the type of 'YourClassName' (ex. foo)
+Return first object of 'YourClassName' of data that matches argument 'params'.
 
-Argument can have some keys and properties, and the method returns an first data that matches all keys and properties.
+Argument can have some keys and properties, and the method returns first data that matches all keys and properties (AND SEARCH).
 
 ### `object.update(obj)`
 ````js
-const foo = YourClassName.find({key1: 'aaa', key2: 'bbb'});
+const foo = YourClassName.find({id: 'aaa', key2: 'bbb'});
 foo.key3 = 2000;
 foo.update()
 ````
@@ -122,4 +134,6 @@ You can update the data 'foo' in the database sheet 'Your Sheet Name' and the sh
 |aaa|bbb|2000|
 |aaa||eee|
 |abab|1000||
+
+### There are other methods. You can see them in the source code.
 
