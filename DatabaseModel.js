@@ -1,12 +1,14 @@
+// Document: https://github.com/Nagai-S/DatabaseModel
+
 class Model {
-  constructor(params) {
+  constructor(params) {    
     for (let key of Object.keys(params)) {
       this[key] = params[key];
-    }
+    }    
   }
 
   static primaryKey() {
-    return "";
+    return '';
   }
 
   static column() {
@@ -23,25 +25,33 @@ class Model {
 
   static sheetInfo() {
     const ss = this.spreadsheet();
-    const sheet = ss.getSheetByName(this.sheetName());
-    const lastColumn = sheet.getDataRange().getLastColumn();
-    const propNames = sheet.getRange(1, 1, 1, lastColumn).getValues();
-    const columnNum = {};
-    for (let i = 0; i < lastColumn; i++) {
-      if (propNames[0][i]) {
-        columnNum[propNames[0][i]] = i;
-      }
-    }
+    const sheet = ss.getSheetByName(this.sheetName());   
     return {
       sheet: sheet,
       lastRow: sheet.getDataRange().getLastRow(),
-      lastColumn: lastColumn,
-      columnNum: columnNum,
-    };
+      lastColumn: sheet.getDataRange().getLastColumn(),      
+    }; 
+  }
+
+  static getColumnNum(sheet, lastColumn){
+    const propNames = sheet.getRange(1,1,1,lastColumn).getValues();
+    let columnNum = {}
+    for (let i=0; i<lastColumn; i++) {
+      if(propNames[0][i]) {
+        columnNum[propNames[0][i]] = i;
+      }
+    }
+    const specifiedColumn = this.column();
+    for (let value of Object.values(specifiedColumn)) {
+      let dupKey = Object.keys(columnNum).find((key) => columnNum[key] === value);
+      delete columnNum[dupKey]
+    }    
+    return Object.assign(columnNum, specifiedColumn);
   }
 
   static all() {
-    const { sheet, lastRow, lastColumn, columnNum } = this.sheetInfo();
+    const { sheet, lastRow, lastColumn } = this.sheetInfo();
+    const columnNum = this.getColumnNum(sheet, lastColumn)
     if (lastRow === 1) {
       return [];
     }
@@ -51,13 +61,14 @@ class Model {
     });
   }
 
-  create() {
+  create() {    
     const { lastRow } = this.constructor.sheetInfo();
-    this.save(lastRow + 1);
+    this.save(lastRow + 1)                
   }
 
   static createAll(objArray) {
-    const { sheet, lastRow, lastColumn, columnNum } = this.sheetInfo();
+    const { sheet, lastRow, lastColumn } = this.sheetInfo();
+    const columnNum = this.getColumnNum(sheet, lastColumn)
     const setData = objArray.map((obj) => {
       return obj.toArray(columnNum);
     });
@@ -68,18 +79,17 @@ class Model {
 
   update() {
     const primaryKey = this.constructor.primaryKey();
-    const rowIndex = this.constructor
-      .all()
-      .findIndex((e) => e[primaryKey] === this[primaryKey]);
+    const rowIndex = this.constructor.all().findIndex((e) => e[primaryKey] === this[primaryKey]);
     if (rowIndex === -1) {
       throw "This item doesn't exist in database";
-    } else {
+    } else {      
       this.save(rowIndex + 2);
     }
   }
 
   save(rowNum) {
-    let { sheet, lastColumn, columnNum } = this.constructor.sheetInfo();
+    let { sheet, lastColumn } = this.constructor.sheetInfo();
+    const columnNum = this.constructor.getColumnNum(sheet, lastColumn)
     let data = this.toArray(columnNum);
     const setData = [data];
     sheet.getRange(rowNum, 1, 1, lastColumn).setValues(setData);
@@ -88,9 +98,7 @@ class Model {
   destroy() {
     let { sheet } = this.constructor.sheetInfo();
     const primaryKey = this.constructor.primaryKey();
-    const rowIndex = this.constructor
-      .all()
-      .findIndex((e) => e[primaryKey] === this[primaryKey]);
+    const rowIndex = this.constructor.all().findIndex((e) => e[primaryKey] === this[primaryKey]);
     if (rowIndex === -1) {
       throw "This item doesn't exist in database";
     } else {
@@ -98,40 +106,28 @@ class Model {
     }
   }
 
-  static overrideColumnNum(columnNum) {
-    const specifiedColumn = this.column();
-    for (let value of Object.values(specifiedColumn)) {
-      let dupKey = Object.keys(columnNum).filter(
-        (key) => columnNum[key] === value
-      );
-      delete columnNum[dupKey];
-    }
-    return Object.assign(columnNum, specifiedColumn);
-  }
-
   toArray(columnNum) {
-    let { lastColumn } = this.constructor.sheetInfo();
-    let data = Array(lastColumn);
-    const column = this.constructor.overrideColumnNum(columnNum);
-    for (let key of Object.keys(column)) {
-      let index = column[key];
+    const arraySize = Object.keys(columnNum).length
+    let data = Array(arraySize);
+    for (let key of Object.keys(columnNum)) {
+      let index = columnNum[key];
       data[index] = this[key];
     }
     return data;
-  }
+  }  
 
-  static arrayToObj(array, columnNum) {
-    let params = {};
-    const column = this.overrideColumnNum(columnNum);
-    for (let key of Object.keys(column)) {
-      let index = column[key];
+  static arrayToObj(array,columnNum) {
+    let params = {};    
+    for (let key of Object.keys(columnNum)) {
+      let index = columnNum[key];
       params[key] = array[index];
     }
     return new this(params);
   }
 
   static first() {
-    const { lastColumn, lastRow, sheet, columnNum } = this.sheetInfo();
+    const { lastColumn, lastRow, sheet } = this.sheetInfo();
+    const columnNum = this.getColumnNum(sheet, lastColumn)
     if (lastRow === 1) {
       return {};
     } else {
@@ -141,7 +137,8 @@ class Model {
   }
 
   static second() {
-    const { lastColumn, lastRow, sheet, columnNum } = this.sheetInfo();
+    const { lastColumn, lastRow, sheet } = this.sheetInfo();
+    const columnNum = this.getColumnNum(sheet, lastColumn)
     if (lastRow < 3) {
       return {};
     } else {
@@ -151,7 +148,8 @@ class Model {
   }
 
   static last() {
-    const { lastColumn, lastRow, sheet, columnNum } = this.sheetInfo();
+    const { lastColumn, lastRow, sheet } = this.sheetInfo();
+    const columnNum = this.getColumnNum(sheet, lastColumn)
     if (lastRow === 1) {
       return {};
     } else {
