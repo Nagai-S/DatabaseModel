@@ -1,9 +1,12 @@
 class Model {
-  constructor(params, primaryKey) {
-    this.id = params[primaryKey];
+  constructor(params) {    
     for (let key of Object.keys(params)) {
       this[key] = params[key];
-    }
+    }    
+  }
+
+  static primaryKey() {
+    return '';
   }
 
   static column() {
@@ -39,50 +42,42 @@ class Model {
     });
   }
 
-  static create(obj) {
-    const { sheet, lastRow, lastColumn } = this.sheetInfo();
-    this.save({
-      obj: obj,
-      rowNum: lastRow + 1,
-      sheet: sheet,
-      lastColumn: lastColumn,
-    });
+  create() {    
+    const { lastRow } = this.constructor.sheetInfo();
+    this.save(lastRow + 1)                
   }
 
   static createAll(objArray) {
     const { sheet, lastRow, lastColumn } = this.sheetInfo();
     const setData = objArray.map((obj) => {
-      return this.objToArray({ obj: obj, lastColumn: lastColumn });
+      return obj.toArray();
     });
     sheet
       .getRange(lastRow + 1, 1, setData.length, lastColumn)
       .setValues(setData);
   }
 
-  static update(obj) {
-    const { sheet, lastColumn } = this.sheetInfo();
-    const rowIndex = this.all().findIndex((e) => e.id === obj.id);
+  update() {
+    const primaryKey = this.constructor.primaryKey();
+    const rowIndex = this.constructor.all().findIndex((e) => e[primaryKey] === this[primaryKey]);
     if (rowIndex === -1) {
-      throw "This item doesn't exist in db";
-    } else {
-      this.save({
-        obj: obj,
-        rowNum: rowIndex + 2,
-        sheet: sheet,
-        lastColumn: lastColumn,
-      });
+      throw "This item doesn't exist in database";
+    } else {      
+      this.save(rowIndex + 2);
     }
   }
 
-  static save({ obj, rowNum, sheet, lastColumn }) {
-    let data = this.objToArray({ obj: obj, lastColumn: lastColumn });
+  save(rowNum) {
+    let { sheet, lastColumn } = this.constructor.sheetInfo();
+    let data = this.toArray();
     const setData = [data];
-    sheet.getRange(rowNum, 1, 1, data.length).setValues(setData);
+    sheet.getRange(rowNum, 1, 1, lastColumn).setValues(setData);
   }
 
-  static destroy() {
-    const { sheet } = this.sheetInfo();
-    const rowIndex = this.all().findIndex((e) => e.id === obj.id);
+  destroy() {
+    let { sheet } = this.constructor.sheetInfo();
+    const primaryKey = this.constructor.primaryKey();
+    const rowIndex = this.constructor.all().findIndex((e) => e[primaryKey] === this[primaryKey]);
     if (rowIndex === -1) {
       throw "This item doesn't exist in db";
     } else {
@@ -90,12 +85,13 @@ class Model {
     }
   }
 
-  static objToArray({ obj, lastColumn }) {
+  toArray() {
+    let {lastColumn} = this.constructor.sheetInfo();
     let data = Array(lastColumn);
-    const column = this.column();
+    const column = this.constructor.column();
     for (let key of Object.keys(column)) {
       let index = column[key];
-      data[index] = obj[key];
+      data[index] = this[key];
     }
     return data;
   }
