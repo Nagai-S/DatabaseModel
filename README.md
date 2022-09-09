@@ -4,7 +4,7 @@
 You can create database model class with ease and you can use some methods.
 
 ## Source Code
-[DatabaseModel.js](https://github.com/Nagai-S/DatabaseModel/blob/main/DatabaseModel.js)
+[Model.ts](https://github.com/Nagai-S/DatabaseModel/blob/main/Model.ts)
 
 ## How to use
 1. Add library with id: "1urlrIRVTLZrQL3iFOPmrxBANfgw6478VDTrsnsOChUOQF0a3yw8HK5wr".
@@ -17,26 +17,11 @@ class YourClassName extends Model {
   constructor(params) {
     super(params);
   }
-  
-  static primaryKey() {
-    return 'id'
-  }
-
-  // optional  
-  static column() {
-    return{
-      id: 0,          
-    }
-  }
-
-  static spreadsheet(){
-    return SpreadsheetApp.getActive();
-  }
-
-  static sheetName() {
-    return 'Your Sheet Name'
-  }
 }
+YourClassName.primaryKey = 'id'
+YourClassName.column = { id: 0 } // optional
+YourClassName.spreadsheet = SpreadsheetApp.getActive()
+YourClassName.sheetName = 'Your Sheet Name'
 ````
 ### Example sheet
 |A|B|C|
@@ -45,8 +30,8 @@ class YourClassName extends Model {
 |data|data|data|
 |data|data|data|
 
-* You can set an integer(>=0) as the value of a property in `static column()` if you want to use different property name from the column name of database. When you want to change the property name associated with column A, you can set `{newPropertyName: 0}`, when column B, `{newPropertyName: 1}`, when column C, `{newPropertyName: 2}` ...
-* You can set a string of a property name that is identifier of the datas in `static primaryKey()`.
+* You can set an integer(>=0) as the value of a property in object of `YourClassName.column` if you want to use different property name from the column name of database sheet. If you want to change the property name associated with column A, you can set `{newPropertyName: 0}`, when column B, `{newPropertyName: 1}`, when column C, `{newPropertyName: 2}` ...
+* You can set a string of a property name that is identifier of the datas in `YourClassName.primaryKey`.
 
 ## Methods
 ### Initialize
@@ -121,7 +106,7 @@ Return first object of 'YourClassName' of data that matches argument 'params'.
 
 Argument can have some keys and properties, and the method returns first data that matches all keys and properties (AND SEARCH).
 
-### `object.update(obj)`
+### `object.update()`
 ````js
 const foo = YourClassName.find({id: 'aaa', key2: 'bbb'});
 foo.key3 = 2000;
