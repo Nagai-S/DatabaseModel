@@ -187,7 +187,3 @@ class Model {
     return allData.length > 0 ? allData[0] : new this({});
   }
 }
-
-function DatabaseModel() {
-  return Model;
-}
