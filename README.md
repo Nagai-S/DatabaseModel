@@ -31,7 +31,7 @@ YourClassName.sheetName = 'Your Sheet Name'
 |data|data|data|
 
 * You can set an integer(>=0) as the value of a property in object of `YourClassName.column` if you want to use different property name from the column name of database sheet. If you want to change the property name associated with column A, you can set `{newPropertyName: 0}`, when column B, `{newPropertyName: 1}`, when column C, `{newPropertyName: 2}` ...
-* You can set a string of a property name that is identifier of the datas in `YourClassName.primaryKey`.
+* You must set a string of a property name that is identifier of the datas in `YourClassName.primaryKey`.
 
 ## Methods
 ### Initialize
