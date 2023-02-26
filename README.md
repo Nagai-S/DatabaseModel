@@ -57,7 +57,7 @@ You can save a data 'foo' in a new row of the database sheet 'Your Sheet Name' a
 |key1|key2|key3|
 |aaa|bbb|ccc|
 
-### `Class.create_all(objArray)`
+### `Class.createAll(objArray)`
 ````js
 const foo2 = new YourClassName({id: 'bbb', key3: 'ccc'});
 const bar = new YourClassName({id: 'ccc', key2: 1000});
