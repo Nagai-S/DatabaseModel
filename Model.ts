@@ -74,6 +74,7 @@ class Model {
   static createAll(objArray: ModelAssociation[]): ModelAssociation[] {
     const { sheet, lastRow, lastColumn } = this.sheetInfo();
     const columnNum = this.getColumnNum(sheet, lastColumn);
+    if (objArray.length == 0) return objArray;
     const setData = objArray.map((obj) => {
       return obj.toArray(columnNum);
     });
@@ -185,5 +186,23 @@ class Model {
   static find(params: object): ModelAssociation {
     let allData = this.findAll(params);
     return allData.length > 0 ? allData[0] : new this({});
+  }
+
+  static exist(params: object): boolean {
+    let searchResult = this.find(params);
+    return Object.keys(searchResult).length > 0;
+  }
+
+  static deleteDuplicate(): boolean {
+    let allData = this.all();
+    let uniqDataArray = [];
+    allData.forEach((data) => {
+      if (uniqDataArray.indexOf(data[this.primaryKey]) > -1) {
+        data.destroy();
+      } else {
+        uniqDataArray.push(data[this.primaryKey]);
+      }
+    });
+    return true;
   }
 }
