@@ -206,7 +206,10 @@ class Model {
     return true;
   }
 
-  equal(this: ModelAssociation, compared_obj: ModelAssociation): boolean {
-    return Object.keys(this).every((key) => this[key] == compared_obj[key]);
+  equal(this: ModelAssociation, compared_obj: ModelAssociation, compared_keys: string[] = []): boolean {
+    if (compared_keys.length == 0) {
+      compared_keys = Object.keys(this);
+    }
+    return compared_keys.every((key) => this[key] == compared_obj[key]);
   }
 }
