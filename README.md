@@ -14,7 +14,7 @@ This is a Google Apps Script library that simplifies working with Google Sheets 
 
 1. Open your Google Apps Script project.
 2. In the **"Libraries"** section, click **"Add a Library"**.
-3. Enter the **Script ID** of the library. (You can find this by sharing your script and copying the ID from the URL).
+3. Enter the **1urlrIRVTLZrQL3iFOPmrxBANfgw6478VDTrsnsOChUOQF0a3yw8HK5wr** of the library.
 4. Once added, you can begin using the library by referencing the provided classes and methods.
 
 ## Usage
