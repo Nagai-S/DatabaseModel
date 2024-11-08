@@ -1,124 +1,97 @@
-# DatabaseModel
-## Description
-### Library of Google App Script
-You can create database model class with ease and you can use some methods.
+# Google Apps Script Model Library
 
-## Source Code
-[Model.ts](https://github.com/Nagai-S/DatabaseModel/blob/main/Model.ts)
+This is a Google Apps Script library that simplifies working with Google Sheets as a database. It allows you to perform basic CRUD (Create, Read, Update, Delete) operations on rows in a Google Sheet, treating each row as a model object. The library offers an easy-to-use interface for interacting with your data, with strong TypeScript support to ensure safe and efficient data management.
 
-## How to use
-1. Add library with id: "1urlrIRVTLZrQL3iFOPmrxBANfgw6478VDTrsnsOChUOQF0a3yw8HK5wr".
-2. Create a sheet for a database with name: "Your Sheet Name".
-3. Create a Class following example codes.
-````js
-const Model = DatabaseModel.DatabaseModel;
+## Features
 
-class YourClassName extends Model {
-  constructor(params) {
-    super(params);
-  }
+- **CRUD operations**: Create, Read, Update, and Delete data in Google Sheets.
+- **Dynamic model handling**: Models are dynamically created based on column headers.
+- **Column mappings**: Automatically maps spreadsheet columns to model properties.
+- **Flexible querying**: Search, find, and filter data based on specific parameters.
+- **Duplicate removal**: Automatically remove duplicate rows based on primary keys.
+
+## Installation
+
+1. Open your Google Apps Script project.
+2. In the **"Libraries"** section, click **"Add a Library"**.
+3. Enter the **Script ID** of the library. (You can find this by sharing your script and copying the ID from the URL).
+4. Once added, you can begin using the library by referencing the provided classes and methods.
+
+## Usage
+
+### 1. **Creating a Model**
+
+Define your custom model class by extending the `Model` class and specifying the necessary fields, including the `primaryKey` and `sheetName`.
+
+```javascript
+// Define your custom model class by extending Model
+class MyModel extends Model {
+  static primaryKey = "id"; // Define the primary key field
+  static sheetName = "MySheet"; // Define the sheet name
 }
-YourClassName.primaryKey = 'id'
-YourClassName.column = { id: 0 } // optional
-YourClassName.spreadsheet = SpreadsheetApp.getActive()
-YourClassName.sheetName = 'Your Sheet Name'
-````
-### Example sheet
-|A|B|C|
-|---|---|---|
-|key1|key2|key3|
-|data|data|data|
-|data|data|data|
 
-* You can set an integer(>=0) as the value of a property in object of `YourClassName.column` if you want to use different property name from the column name of database sheet. If you want to change the property name associated with column A, you can set `{newPropertyName: 0}`, when column B, `{newPropertyName: 1}`, when column C, `{newPropertyName: 2}` ...
-* You must set a string of a property name that is identifier of the datas in `YourClassName.primaryKey`.
+// Creating a new instance of the model
+const newModel = new MyModel({ id: 1, name: "Sample Item" });
+newModel.create(); // Create a new record in the sheet
 
-## Methods
-### Initialize
-````js
-let foo = new YourClassName({id: 'aaa', key2: 'bbb'}); 
-// You can create an instance of 'YourClassName'
-let val1 = foo.id; 
-// You can set 'aaa' in 'val1'
-let val2 = foo.key2; 
-// You can set 'bbb' in 'val2'
-foo.key3 = 'ccc';  
-// You can set 'ccc' in the property of 'key3' of the instance 'foo';
-````
+2. Retrieving Data
 
-### `object.create()`
-````js
-let foo = new YourClassName({id: 'aaa', key2: 'bbb', key3: 'ccc'});
-foo.create();
-````
-You can save a data 'foo' in a new row of the database sheet 'Your Sheet Name' and the sheet is like the following.
-|A|B|C|
-|---|---|---|
-|key1|key2|key3|
-|aaa|bbb|ccc|
+You can fetch all rows or a specific record using all(), first(), or find():
 
-### `Class.createAll(objArray)`
-````js
-const foo2 = new YourClassName({id: 'bbb', key3: 'ccc'});
-const bar = new YourClassName({id: 'ccc', key2: 1000});
-YourClassName.create_all([foo2, bar]);
-````
-You can save all datas 'foo2' and 'bar' in new rows of the database sheet 'Your Sheet Name' and the sheet is like the following.
-|A|B|C|
-|---|---|---|
-|key1|key2|key3|
-|aaa|bbb|ccc|
-|bbb||ccc|
-|ccc|1000||
+const allItems = MyModel.all(); // Get all records
+const firstItem = MyModel.first(); // Get the first record
+const item = MyModel.find({ id: 1 }); // Find a specific record by ID
 
-### `Class.all()`
-````js
-const datas = YourClassName.all(); 
-// return
-// [
-//   {id: 'aaa', key2: 'bbb', key3: 'ccc'},
-//   {id: 'bbb', key2: '', key3: 'ccc'},
-//   {id: 'ccc', key2: 1000, key3: ''},
-// ]
-````
-Return an array of the object of 'YourClassName' of all datas saved in database sheet.
+3. Updating Data
 
-### `Class.findAll(params)`
-````js
-const datas = YourClassName.findAll({key3: 'ccc'});
-// return
-// [
-//   {id: 'aaa', key2: 'bbb', key3: 'ccc'},
-//   {id: 'bbb', key2: '', key3: 'ccc'},
-// ]
-````
-Return an array of the object of 'YourClassName' of all datas that match argument 'params'.
+Update a record by calling the update() method on the model instance.
 
-Argument can have some keys and properties, and the method returns all datas that match all keys and properties (AND SEARCH).
+item.name = "Updated Name";
+item.update(); // Update the existing record
 
-### `Class.find(params)`
-````js
-const datas = YourClassName.find({id: 'aaa'}); 
-// return
-// {id: 'aaa', key2: 'bbb', key3: 'ccc'}
-````
-Return first object of 'YourClassName' of data that matches argument 'params'.
+4. Deleting Data
 
-Argument can have some keys and properties, and the method returns first data that matches all keys and properties (AND SEARCH).
+To delete a record, use the destroy() method.
 
-### `object.update()`
-````js
-const foo = YourClassName.find({id: 'aaa', key2: 'bbb'});
-foo.key3 = 2000;
-foo.update()
-````
-You can update the data 'foo' in the database sheet 'Your Sheet Name' and the sheet is like the following.
-|A|B|C|
-|---|---|---|
-|key1|key2|key3|
-|aaa|bbb|2000|
-|aaa||eee|
-|abab|1000||
+item.destroy(); // Delete the current record
 
-### There are other methods. You can see them in the source code.
+5. Handling Duplicate Records
 
+You can remove duplicate rows based on the primary key:
+
+MyModel.deleteDuplicate(); // Automatically remove duplicate rows
+
+Methods Summary
+
+	•	create(): Creates a new record in the sheet.
+	•	update(): Updates the current record in the sheet.
+	•	destroy(): Deletes the current record.
+	•	all(): Fetches all records from the sheet.
+	•	first(): Retrieves the first record.
+	•	find(): Finds a specific record based on parameters.
+	•	deleteDuplicate(): Removes duplicate rows based on the primary key.
+
+JavaScript Support
+
+This library is written in JavaScript and designed for use with Google Apps Script. It provides an easy-to-use API for interacting with Google Sheets and handling data like a database.
+
+License
+
+This library is licensed under the MIT License. See the LICENSE file for more details.
+
+Tips for Using the Library
+
+	•	Be sure to define the primaryKey in your model, as it’s used for updating and deleting records.
+	•	Use sheetName to ensure the model operates on the correct sheet within your spreadsheet.
+	•	Always use find() or findAll() with caution, especially with large datasets, as fetching all records can be slow.
+
+How to Contribute
+
+	1.	Fork the repository.
+	2.	Create a feature branch.
+	3.	Commit your changes.
+	4.	Open a pull request.
+
+### Key changes:
+- **JavaScript Syntax**: TypeScript-specific features like type declarations have been removed, and the code is now written in standard JavaScript, as would be used in Google Apps Script.
+- **Model Definitions**: The model now uses JavaScript classes (`class MyModel extends Model`) without TypeScript's type annotations.
