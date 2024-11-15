@@ -1,6 +1,26 @@
-# Google Apps Script Model Library
+# Google Apps Script Library: Database Model
 
 This is a Google Apps Script library that simplifies working with Google Sheets as a database. It allows you to perform basic CRUD (Create, Read, Update, Delete) operations on rows in a Google Sheet, treating each row as a model object. The library offers an easy-to-use interface for interacting with your data, with strong TypeScript support to ensure safe and efficient data management.
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Reference](#api-reference)
+- [Examples](#examples)
+- [Spreadsheet Examples](#spreadsheet-examples)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+The **Database Model** library allows developers to interact with Google Sheets as structured data models, enabling easier management of rows, columns, and their mappings. It includes utilities for:
+
+- Fetching and updating spreadsheet data.
+- Searching for spreadsheet data
+- Managing metadata like primary keys and sheet names.
 
 ## Features
 
@@ -12,86 +32,139 @@ This is a Google Apps Script library that simplifies working with Google Sheets 
 
 ## Installation
 
+To use this library:
+
 1. Open your Google Apps Script project.
-2. In the **"Libraries"** section, click **"Add a Library"**.
-3. Enter the **1urlrIRVTLZrQL3iFOPmrxBANfgw6478VDTrsnsOChUOQF0a3yw8HK5wr** of the library.
-4. Once added, you can begin using the library by referencing the provided classes and methods.
+2. Click on the menu: `Extensions > Libraries`.
+3. In the "Add a library" dialog, input the script ID of this library:
+   ```
+   1urlrIRVTLZrQL3iFOPmrxBANfgw6478VDTrsnsOChUOQF0a3yw8HK5wr
+   ```
+4. Select the latest version and click "Add".
 
 ## Usage
 
-### 1. **Creating a Model**
+### Basic Setup
 
-Define your custom model class by extending the `Model` class and specifying the necessary fields, including the `primaryKey` and `sheetName`.
+To begin using the library, you need to configure your model:
 
-```javascript
-// Define your custom model class by extending Model
+```typescript
 class MyModel extends Model {
-  static primaryKey = "id"; // Define the primary key field
-  static sheetName = "MySheet"; // Define the sheet name
+  static spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  static sheetName = "Sheet1"; // Define the sheet name
+  static primaryKey = "id"; // Define your primary key.
 }
 
-// Creating a new instance of the model
-const newModel = new MyModel({ id: 1, name: "Sample Item" });
-newModel.create(); // Create a new record in the sheet
+// Example: Initialize a model
+const modelInstance = new MyModel({ id: 1, name: "John Doe" });
+modelInstance.create(); // Create a new record in the sheet
+```
 
-2. Retrieving Data
+### Retrieving Data
 
 You can fetch all rows or a specific record using all(), first(), or find():
 
+```typescript
 const allItems = MyModel.all(); // Get all records
 const firstItem = MyModel.first(); // Get the first record
 const item = MyModel.find({ id: 1 }); // Find a specific record by ID
+```
 
-3. Updating Data
-
-Update a record by calling the update() method on the model instance.
-
-item.name = "Updated Name";
-item.update(); // Update the existing record
-
-4. Deleting Data
+### Deleting Data
 
 To delete a record, use the destroy() method.
 
-item.destroy(); // Delete the current record
+```typescript
+modelInstance.destroy(); // Delete the current record
+```
 
-5. Handling Duplicate Records
+### Handling Duplicate Records
 
 You can remove duplicate rows based on the primary key:
 
+```typescript
 MyModel.deleteDuplicate(); // Automatically remove duplicate rows
+```
 
-Methods Summary
+## Spreadsheet Examples
 
-	•	create(): Creates a new record in the sheet.
-	•	update(): Updates the current record in the sheet.
-	•	destroy(): Deletes the current record.
-	•	all(): Fetches all records from the sheet.
-	•	first(): Retrieves the first record.
-	•	find(): Finds a specific record based on parameters.
-	•	deleteDuplicate(): Removes duplicate rows based on the primary key.
+### Example Table Before and After Method Execution
 
-JavaScript Support
+**Initial Spreadsheet (Before Any Operations):**
 
-This library is written in JavaScript and designed for use with Google Apps Script. It provides an easy-to-use API for interacting with Google Sheets and handling data like a database.
+| ID  | Name       | Email            |
+| --- | ---------- | ---------------- |
+| 1   | John Doe   | john@example.com |
+| 2   | Jane Smith | jane@example.com |
 
-License
+#### Method: create
 
-This library is licensed under the MIT License. See the LICENSE file for more details.
+```typescript
+const modelInstance = new MyModel({
+  ID: 3,
+  Name: "Alice",
+  Email: "alice@example.com",
+});
+modelInstance.create();
+```
 
-Tips for Using the Library
+**Updated Spreadsheet:**
 
-	•	Be sure to define the primaryKey in your model, as it’s used for updating and deleting records.
-	•	Use sheetName to ensure the model operates on the correct sheet within your spreadsheet.
-	•	Always use find() or findAll() with caution, especially with large datasets, as fetching all records can be slow.
+| ID  | Name       | Email             |
+| --- | ---------- | ----------------- |
+| 1   | John Doe   | john@example.com  |
+| 2   | Jane Smith | jane@example.com  |
+| 3   | Alice      | alice@example.com |
 
-How to Contribute
+---
 
-	1.	Fork the repository.
-	2.	Create a feature branch.
-	3.	Commit your changes.
-	4.	Open a pull request.
+#### Method: update
 
-### Key changes:
-- **JavaScript Syntax**: TypeScript-specific features like type declarations have been removed, and the code is now written in standard JavaScript, as would be used in Google Apps Script.
-- **Model Definitions**: The model now uses JavaScript classes (`class MyModel extends Model`) without TypeScript's type annotations.
+```typescript
+let john = MyModel.find({ ID: 1 });
+john.Name = "Johnathan Doe";
+john.update();
+```
+
+**Updated Spreadsheet:**
+
+| ID  | Name          | Email             |
+| --- | ------------- | ----------------- |
+| 1   | Johnathan Doe | john@example.com  |
+| 2   | Jane Smith    | jane@example.com  |
+| 3   | Alice         | alice@example.com |
+
+---
+
+#### Method: destroy
+
+```typescript
+let alice = MyModel.find({ ID: 3 });
+alice.destroy();
+```
+
+**Updated Spreadsheet:**
+
+| ID  | Name          | Email            |
+| --- | ------------- | ---------------- |
+| 1   | Johnathan Doe | john@example.com |
+| 2   | Jane Smith    | jane@example.com |
+
+---
+
+## Adding Custom Functions
+
+Developers can extend the library with custom methods for additional operations.
+
+## Contributing
+
+Contributions are welcome!
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Open a pull request.
+
+## License
+
+This project is licensed under the MIT License.
