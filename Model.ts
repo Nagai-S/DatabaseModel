@@ -90,11 +90,51 @@ class Model {
     const rowIndex = thisClass
       .all()
       .findIndex((e) => e[primaryKey] === this[primaryKey]);
+
     if (rowIndex === -1) {
-      throw "This item doesn't exist in database";
+      throw new Error(
+        `Item with primaryKey ${this[primaryKey]} not found in database.`
+      );
     } else {
       return this.save(rowIndex + 2);
     }
+  }
+
+  static findAndUpdate(params: object, updateValues: object): ModelAssociation {
+    const item = this.find(params);
+    if (!item) {
+      throw "Record not found";
+    }
+    Object.assign(item, updateValues);
+    return item.update();
+  }
+
+  static updateWhere(condition: object, updateValues: object): void {
+    const records = this.findAll(condition);
+    records.forEach((record) => {
+      Object.assign(record, updateValues);
+      record.update();
+    });
+  }
+
+  static cacheData(): ModelAssociation[] {
+    const cache = CacheService.getScriptCache();
+    const cachedData = cache.get("allData");
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    } else {
+      const allData = this.all();
+      cache.put("allData", JSON.stringify(allData), 1500); // Cache for 25 minutes
+      return allData;
+    }
+  }
+
+  static mergeRecords(
+    record1: ModelAssociation,
+    record2: ModelAssociation
+  ): ModelAssociation {
+    const mergedData = Object.assign({}, record1, record2);
+    return new this(mergedData);
   }
 
   save(this: ModelAssociation, saveNum: number = 0): ModelAssociation {
@@ -120,6 +160,24 @@ class Model {
     } else {
       sheet.deleteRow(rowIndex + 2);
     }
+  }
+
+  static destroyAll(records: ModelAssociation[]): void {
+    const primaryKey = this.primaryKey;
+    const { sheet } = this.sheetInfo();
+    const rowsToDelete = records
+      .map((record) => {
+        const rowIndex =
+          this.all().findIndex(
+            (item) => item[primaryKey] === record[primaryKey]
+          ) + 2;
+        return rowIndex;
+      })
+      .sort((a, b) => b - a); // Delete from the bottom to avoid shifting rows
+
+    rowsToDelete.forEach((rowIndex) => {
+      sheet.deleteRow(rowIndex);
+    });
   }
 
   toArray(columnNum: { [key in keyof Model]?: number }): any[] {
@@ -186,6 +244,43 @@ class Model {
   static find(params: object): ModelAssociation {
     let allData = this.findAll(params);
     return allData.length > 0 ? allData[0] : new this({});
+  }
+
+  static getByPrimaryKey(primaryKeyValue: any): ModelAssociation {
+    const { sheet, lastRow, lastColumn } = this.sheetInfo();
+    const columnNum = this.getColumnNum(sheet, lastColumn);
+    const datas = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
+
+    const record = datas.find(
+      (data) => data[columnNum[this.primaryKey]] === primaryKeyValue
+    );
+    return record ? this.arrayToObj(record, columnNum) : null;
+  }
+
+  static findAll2(params: object): ModelAssociation[] {
+    const { sheet, lastRow, lastColumn } = this.sheetInfo();
+    const columnNum = this.getColumnNum(sheet, lastColumn);
+
+    let queryString = "SELECT * WHERE ";
+    let conditions = [];
+
+    // Build the WHERE conditions dynamically based on the params
+    for (let key of Object.keys(params)) {
+      const columnIndex = columnNum[key] + 1; // Convert to 1-based index for QUERY
+      conditions.push(`Col${columnIndex} = '${params[key]}'`);
+    }
+
+    queryString += conditions.join(" AND ");
+
+    // Use the QUERY function to fetch the rows that match the criteria
+    const queryResult = sheet
+      .getRange(2, 1, lastRow - 1, lastColumn)
+      .createTextFinder(queryString)
+      .findAll();
+
+    return queryResult.map((range) =>
+      this.arrayToObj(range.getValues(), columnNum)
+    );
   }
 
   static exist(params: object): boolean {
