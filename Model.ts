@@ -257,32 +257,6 @@ class Model {
     return record ? this.arrayToObj(record, columnNum) : null;
   }
 
-  static findAll2(params: object): ModelAssociation[] {
-    const { sheet, lastRow, lastColumn } = this.sheetInfo();
-    const columnNum = this.getColumnNum(sheet, lastColumn);
-
-    let queryString = "SELECT * WHERE ";
-    let conditions = [];
-
-    // Build the WHERE conditions dynamically based on the params
-    for (let key of Object.keys(params)) {
-      const columnIndex = columnNum[key] + 1; // Convert to 1-based index for QUERY
-      conditions.push(`Col${columnIndex} = '${params[key]}'`);
-    }
-
-    queryString += conditions.join(" AND ");
-
-    // Use the QUERY function to fetch the rows that match the criteria
-    const queryResult = sheet
-      .getRange(2, 1, lastRow - 1, lastColumn)
-      .createTextFinder(queryString)
-      .findAll();
-
-    return queryResult.map((range) =>
-      this.arrayToObj(range.getValues(), columnNum)
-    );
-  }
-
   static exist(params: object): boolean {
     let searchResult = this.find(params);
     return Object.keys(searchResult).length > 0;
