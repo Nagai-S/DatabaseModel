@@ -156,7 +156,7 @@ class Model {
       .all()
       .findIndex((e) => e[primaryKey] === this[primaryKey]);
     if (rowIndex === -1) {
-      throw "This item doesn't exist in database";
+      throw `Item with primaryKey ${this[primaryKey]} not found in database.`;
     } else {
       sheet.deleteRow(rowIndex + 2);
     }
