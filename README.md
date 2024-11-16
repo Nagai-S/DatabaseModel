@@ -4,15 +4,24 @@ This is a Google Apps Script library that simplifies working with Google Sheets 
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Reference](#api-reference)
-- [Examples](#examples)
-- [Spreadsheet Examples](#spreadsheet-examples)
-- [Contributing](#contributing)
-- [License](#license)
+- [Google Apps Script Library: Database Model](#google-apps-script-library-database-model)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Basic Setup](#basic-setup)
+    - [Retrieving Data](#retrieving-data)
+    - [Deleting Data](#deleting-data)
+    - [Handling Duplicate Records](#handling-duplicate-records)
+  - [Spreadsheet Examples](#spreadsheet-examples)
+    - [Example Table Before and After Method Execution](#example-table-before-and-after-method-execution)
+      - [Method: create](#method-create)
+      - [Method: update](#method-update)
+      - [Method: destroy](#method-destroy)
+  - [Adding Custom Functions](#adding-custom-functions)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Introduction
 
@@ -50,10 +59,13 @@ To begin using the library, you need to configure your model:
 
 ```typescript
 class MyModel extends Model {
-  static spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  static sheetName = "Sheet1"; // Define the sheet name
-  static primaryKey = "id"; // Define your primary key.
+  constructor(params) {
+    super(params);
+  }
 }
+MyModel.spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+MyModel.sheetName = "Sheet1"; // Define the sheet name
+MyModel.primaryKey = "id"; // Define your primary key.
 
 // Example: Initialize a model
 const modelInstance = new MyModel({ id: 1, name: "John Doe" });
