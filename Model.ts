@@ -1,5 +1,10 @@
 // Document: https://github.com/Nagai-S/DatabaseModel
-
+/**
+ * Google Apps Script Library: DatabaseModel
+ * 
+ * Provides a class for interacting with a Google Sheets spreadsheet
+ * as if it were a database, supporting CRUD operations and more.
+ */
 type ssType = GoogleAppsScript.Spreadsheet.Spreadsheet;
 type sheetType = GoogleAppsScript.Spreadsheet.Sheet;
 
@@ -11,15 +16,36 @@ class Model {
   constructor(params: { [key: keyof Model]: any }) {
     Object.assign(this, params);
   }
-
+  /**
+   * The primary key column for the model.
+   * @type {string}
+   */
   static primaryKey: string = "";
-
+  /**
+   * Maps column names to their respective indices in the spreadsheet.
+   * @type {{ [key in keyof Model]?: number }}
+   */
   static column: { [key in keyof Model]?: number } = {};
-
+  /**
+   * Reference to the spreadsheet.
+   * @type {GoogleAppsScript.Spreadsheet.Spreadsheet}
+   */
   static spreadsheet: ssType;
-
+  /**
+   * Name of the sheet within the spreadsheet.
+   * @type {string}
+   */
   static sheetName: string = "";
-
+  /**
+   * Retrieves metadata about the sheet (e.g., last row/column).
+   * @return {Object} Information about the sheet.
+   * @property {sheetType} sheet The sheet object.
+   * @property {number} lastRow The last row with data.
+   * @property {number} lastColumn The last column with data.
+   * @example
+   * const info = Model.sheetInfo();
+   * Logger.log(`Last row: ${info.lastRow}, Last column: ${info.lastColumn}`);
+   */
   static sheetInfo(): {
     sheet: sheetType;
     lastRow: number;
@@ -33,7 +59,16 @@ class Model {
       lastColumn: sheet.getDataRange().getLastColumn(),
     };
   }
-
+  /**
+   * Maps column names to their respective indices.
+   * @param {sheetType} sheet The sheet to analyze.
+   * @param {number} lastColumn The number of columns in the sheet.
+   * @return {Object} A map of column names to indices.
+   * @example
+   * const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+   * const columnMap = Model.getColumnNum(sheet, 10);
+   * Logger.log(columnMap);
+   */
   static getColumnNum(
     sheet: sheetType,
     lastColumn: number
@@ -54,7 +89,13 @@ class Model {
     }
     return Object.assign(columnNum, specifiedColumn);
   }
-
+  /**
+   * Retrieves all rows as objects.
+   * @return {ModelAssociation[]} An array of rows as objects.
+   * @example
+   * const allRecords = Model.all();
+   * allRecords.forEach(record => Logger.log(record));
+   */
   static all(): ModelAssociation[] {
     const { sheet, lastRow, lastColumn } = this.sheetInfo();
     const columnNum = this.getColumnNum(sheet, lastColumn);
@@ -66,11 +107,27 @@ class Model {
       return this.arrayToObj(data, columnNum);
     });
   }
-
+  /**
+   * Creates and saves the current object to the sheet.
+   * @return {ModelAssociation} The saved object.
+   * @example
+   * const record = new Model({ id: 1, name: "John Doe" });
+   * record.create();
+   */
   create(this: ModelAssociation): ModelAssociation {
     return this.save();
   }
-
+  /**
+   * Saves an array of objects to the sheet.
+   * @param {ModelAssociation[]} objArray Array of objects to save.
+   * @return {ModelAssociation[]} The saved objects.
+   * @example
+   * const records = [
+   *   new Model({ id: 1, name: "Alice" }),
+   *   new Model({ id: 2, name: "Bob" }),
+   * ];
+   * Model.createAll(records);
+   */
   static createAll(objArray: ModelAssociation[]): ModelAssociation[] {
     const { sheet, lastRow, lastColumn } = this.sheetInfo();
     const columnNum = this.getColumnNum(sheet, lastColumn);
@@ -83,7 +140,15 @@ class Model {
       .setValues(setData);
     return objArray;
   }
-
+  /**
+   * Updates the current object in the sheet.
+   * @throws Will throw an error if the primary key value is not found.
+   * @return {ModelAssociation} The updated object.
+   * @example
+   * const record = Model.find({ id: 1 });
+   * record.name = "Updated Name";
+   * record.update();
+   */
   update(this: ModelAssociation): ModelAssociation {
     const thisClass: typeof Model = this.constructor as typeof Model;
     const primaryKey: string = thisClass.primaryKey;
@@ -99,7 +164,7 @@ class Model {
       return this.save(rowIndex + 2);
     }
   }
-
+  
   static findAndUpdate(params: object, updateValues: object): ModelAssociation {
     const item = this.find(params);
     if (!item) {
@@ -147,7 +212,13 @@ class Model {
     sheet.getRange(saveNum, 1, 1, lastColumn).setValues(setData);
     return this;
   }
-
+   /**
+   * Deletes the current object from the sheet.
+   * @throws Will throw an error if the object is not found.
+   * @example
+   * const record = Model.find({ id: 1 });
+   * record.destroy();
+   */
   destroy(this: ModelAssociation): void {
     const thisClass: typeof Model = this.constructor as typeof Model;
     let { sheet } = thisClass.sheetInfo();
@@ -179,7 +250,15 @@ class Model {
       sheet.deleteRow(rowIndex);
     });
   }
-
+  /**
+   * Converts the object to an array based on the column indices.
+   * @param {Object} columnNum Mapping of column names to indices.
+   * @return {any[]} The object as an array.
+   * @example
+   * const columnMap = Model.getColumnNum(sheet, 10);
+   * const recordArray = record.toArray(columnMap);
+   * Logger.log(recordArray);
+   */
   toArray(columnNum: { [key in keyof Model]?: number }): any[] {
     const arraySize = Object.keys(columnNum).length;
     let data = Array(arraySize);
@@ -189,7 +268,17 @@ class Model {
     }
     return data;
   }
-
+  /**
+   * Converts an array to an object based on the column indices.
+   * @param {any[]} array The array representing the row data.
+   * @param {Object} columnNum Mapping of column names to indices.
+   * @return {ModelAssociation} The array as an object.
+   * @example
+   * const array = ["Alice", 25];
+   * const columnMap = { name: 0, age: 1 };
+   * const record = Model.arrayToObj(array, columnMap);
+   * Logger.log(record);
+   */
   static arrayToObj(
     array: any[],
     columnNum: { [key in keyof Model]?: number }
