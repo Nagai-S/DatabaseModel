@@ -1,7 +1,7 @@
 // Document: https://github.com/Nagai-S/DatabaseModel
 /**
  * Google Apps Script Library: DatabaseModel
- * 
+ *
  * Provides a class for interacting with a Google Sheets spreadsheet
  * as if it were a database, supporting CRUD operations and more.
  */
@@ -16,26 +16,31 @@ class Model {
   constructor(params: { [key: keyof Model]: any }) {
     Object.assign(this, params);
   }
+
   /**
    * The primary key column for the model.
    * @type {string}
    */
   static primaryKey: string = "";
+
   /**
    * Maps column names to their respective indices in the spreadsheet.
    * @type {{ [key in keyof Model]?: number }}
    */
   static column: { [key in keyof Model]?: number } = {};
+
   /**
    * Reference to the spreadsheet.
    * @type {GoogleAppsScript.Spreadsheet.Spreadsheet}
    */
   static spreadsheet: ssType;
+
   /**
    * Name of the sheet within the spreadsheet.
    * @type {string}
    */
   static sheetName: string = "";
+
   /**
    * Retrieves metadata about the sheet (e.g., last row/column).
    * @return {Object} Information about the sheet.
@@ -59,6 +64,7 @@ class Model {
       lastColumn: sheet.getDataRange().getLastColumn(),
     };
   }
+
   /**
    * Maps column names to their respective indices.
    * @param {sheetType} sheet The sheet to analyze.
@@ -89,6 +95,7 @@ class Model {
     }
     return Object.assign(columnNum, specifiedColumn);
   }
+
   /**
    * Retrieves all rows as objects.
    * @return {ModelAssociation[]} An array of rows as objects.
@@ -107,6 +114,7 @@ class Model {
       return this.arrayToObj(data, columnNum);
     });
   }
+
   /**
    * Creates and saves the current object to the sheet.
    * @return {ModelAssociation} The saved object.
@@ -117,6 +125,7 @@ class Model {
   create(this: ModelAssociation): ModelAssociation {
     return this.save();
   }
+
   /**
    * Saves an array of objects to the sheet.
    * @param {ModelAssociation[]} objArray Array of objects to save.
@@ -140,6 +149,7 @@ class Model {
       .setValues(setData);
     return objArray;
   }
+
   /**
    * Updates the current object in the sheet.
    * @throws Will throw an error if the primary key value is not found.
@@ -164,7 +174,16 @@ class Model {
       return this.save(rowIndex + 2);
     }
   }
-  
+
+  /**
+   * Finds a record and updates its values.
+   * @param {object} params Parameters to find the record.
+   * @param {object} updateValues The new values to update the record with.
+   * @return {ModelAssociation} The updated record.
+   * @throws Will throw an error if the record is not found.
+   * @example
+   * const updatedRecord = Model.findAndUpdate({ id: 1 }, { name: "John" });
+   */
   static findAndUpdate(params: object, updateValues: object): ModelAssociation {
     const item = this.find(params);
     if (!item) {
@@ -174,6 +193,13 @@ class Model {
     return item.update();
   }
 
+  /**
+   * Updates all records that meet a condition.
+   * @param {object} condition The condition to match records.
+   * @param {object} updateValues The new values to apply.
+   * @example
+   * Model.updateWhere({ status: "active" }, { status: "inactive" });
+   */
   static updateWhere(condition: object, updateValues: object): void {
     const records = this.findAll(condition);
     records.forEach((record) => {
@@ -182,6 +208,12 @@ class Model {
     });
   }
 
+  /**
+   * Caches the result of all records for faster access.
+   * @return {ModelAssociation[]} Cached data or fresh data if cache is empty.
+   * @example
+   * const cachedRecords = Model.cacheData();
+   */
   static cacheData(): ModelAssociation[] {
     const cache = CacheService.getScriptCache();
     const cachedData = cache.get("allData");
@@ -194,6 +226,14 @@ class Model {
     }
   }
 
+  /**
+   * Merges two records into one.
+   * @param {ModelAssociation} record1 The first record.
+   * @param {ModelAssociation} record2 The second record.
+   * @return {ModelAssociation} The merged record.
+   * @example
+   * const merged = Model.mergeRecords(recordA, recordB);
+   */
   static mergeRecords(
     record1: ModelAssociation,
     record2: ModelAssociation
@@ -202,6 +242,14 @@ class Model {
     return new this(mergedData);
   }
 
+  /**
+   * Saves the current object to the sheet at the specified row or as a new row.
+   * @param {number} [saveNum=0] The row number to save at (0 for new row).
+   * @return {ModelAssociation} The saved object.
+   * @example
+   * const record = new Model({ id: 1, name: "Alice" });
+   * record.save();
+   */
   save(this: ModelAssociation, saveNum: number = 0): ModelAssociation {
     const thisClass: typeof Model = this.constructor as typeof Model;
     let { sheet, lastColumn, lastRow } = thisClass.sheetInfo();
@@ -212,7 +260,8 @@ class Model {
     sheet.getRange(saveNum, 1, 1, lastColumn).setValues(setData);
     return this;
   }
-   /**
+
+  /**
    * Deletes the current object from the sheet.
    * @throws Will throw an error if the object is not found.
    * @example
@@ -233,6 +282,13 @@ class Model {
     }
   }
 
+  /**
+   * Deletes multiple records from the sheet.
+   * @param {ModelAssociation[]} records The records to delete.
+   * @example
+   * const records = Model.findAll({ status: "inactive" });
+   * Model.destroyAll(records);
+   */
   static destroyAll(records: ModelAssociation[]): void {
     const primaryKey = this.primaryKey;
     const { sheet } = this.sheetInfo();
@@ -250,6 +306,7 @@ class Model {
       sheet.deleteRow(rowIndex);
     });
   }
+
   /**
    * Converts the object to an array based on the column indices.
    * @param {Object} columnNum Mapping of column names to indices.
@@ -268,6 +325,7 @@ class Model {
     }
     return data;
   }
+
   /**
    * Converts an array to an object based on the column indices.
    * @param {any[]} array The array representing the row data.
@@ -291,6 +349,12 @@ class Model {
     return new this(params);
   }
 
+  /**
+   * Retrieves the first record in the sheet.
+   * @return {ModelAssociation} The first record.
+   * @example
+   * const firstRecord = Model.first();
+   */
   static first(): ModelAssociation {
     const { lastColumn, lastRow, sheet } = this.sheetInfo();
     const columnNum = this.getColumnNum(sheet, lastColumn);
@@ -302,6 +366,12 @@ class Model {
     }
   }
 
+  /**
+   * Retrieves the second record in the sheet.
+   * @return {ModelAssociation} The second record.
+   * @example
+   * const secondRecord = Model.second();
+   */
   static second(): ModelAssociation {
     const { lastColumn, lastRow, sheet } = this.sheetInfo();
     const columnNum = this.getColumnNum(sheet, lastColumn);
@@ -313,6 +383,12 @@ class Model {
     }
   }
 
+  /**
+   * Retrieves the last record in the sheet.
+   * @return {ModelAssociation} The last record.
+   * @example
+   * const lastRecord = Model.last();
+   */
   static last(): ModelAssociation {
     const { lastColumn, lastRow, sheet } = this.sheetInfo();
     const columnNum = this.getColumnNum(sheet, lastColumn);
@@ -324,17 +400,38 @@ class Model {
     }
   }
 
+  /**
+   * Finds all records matching the given parameters.
+   * @param {object} params The parameters to match.
+   * @return {ModelAssociation[]} The matching records.
+   * @example
+   * const results = Model.findAll({ status: "active" });
+   */
   static findAll(params: object): ModelAssociation[] | [] {
     return this.all().filter((obj) => {
       return Object.keys(params).every((key) => params[key] === obj[key]);
     });
   }
 
+  /**
+   * Finds the first record matching the given parameters.
+   * @param {object} params The parameters to match.
+   * @return {ModelAssociation} The matching record or an empty object.
+   * @example
+   * const record = Model.find({ id: 1 });
+   */
   static find(params: object): ModelAssociation {
     let allData = this.findAll(params);
     return allData.length > 0 ? allData[0] : new this({});
   }
 
+  /**
+   * Finds a record by its primary key.
+   * @param {any} primaryKeyValue The value of the primary key to match.
+   * @return {ModelAssociation|null} The matching record or null if not found.
+   * @example
+   * const record = Model.getByPrimaryKey(1);
+   */
   static getByPrimaryKey(primaryKeyValue: any): ModelAssociation {
     const { sheet, lastRow, lastColumn } = this.sheetInfo();
     const columnNum = this.getColumnNum(sheet, lastColumn);
@@ -346,11 +443,24 @@ class Model {
     return record ? this.arrayToObj(record, columnNum) : null;
   }
 
+  /**
+   * Checks if a record exists for the given parameters.
+   * @param {object} params The parameters to match.
+   * @return {boolean} True if a matching record exists, false otherwise.
+   * @example
+   * const exists = Model.exist({ id: 1 });
+   */
   static exist(params: object): boolean {
     let searchResult = this.find(params);
     return Object.keys(searchResult).length > 0;
   }
 
+  /**
+   * Deletes duplicate records based on the primary key.
+   * @return {boolean} True if operation was successful.
+   * @example
+   * const success = Model.deleteDuplicate();
+   */
   static deleteDuplicate(): boolean {
     let allData = this.all();
     let uniqDataArray = [];
@@ -364,6 +474,14 @@ class Model {
     return true;
   }
 
+  /**
+   * Compares the current object to another for equality.
+   * @param {ModelAssociation} compared_obj The object to compare against.
+   * @param {string[]} [compared_keys=[]] Keys to compare (all keys by default).
+   * @return {boolean} True if the objects are equal, false otherwise.
+   * @example
+   * const isEqual = record1.equal(record2, ["id", "name"]);
+   */
   equal(
     this: ModelAssociation,
     compared_obj: ModelAssociation,
